@@ -6,7 +6,7 @@ import (
 	"vcx/clients/cli/internal/client"
 )
 
-const agentURL = "http://localhost:8080"
+const agentURL = "http://localhost:9847"
 
 func main() {
 	if len(os.Args) < 2 {

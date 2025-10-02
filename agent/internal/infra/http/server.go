@@ -27,12 +27,12 @@ func Start(ctx context.Context) {
     }
 
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":9847",
 		Handler: http.HandlerFunc(corsHandler),
 	}
 
 	go func() {
-		log.Println("Server starting on :8080")
+		log.Println("Server starting on :9847")
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			log.Printf("Server error: %v", err)
 		}
