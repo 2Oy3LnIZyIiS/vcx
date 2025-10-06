@@ -7,7 +7,7 @@ import (
 
 
 func WriteSSE(w http.ResponseWriter, data string) {
-    fmt.Fprintf(w, "%s\n", data)
+    fmt.Fprintf(w, "data: %s\n\n", data)
     if flusher, ok := w.(http.Flusher); ok {
         flusher.Flush()
     }

@@ -1,6 +1,12 @@
-# VCX
+# VCX - Work in progress
 
-Personal version control.
+Personal version control
+
+This is a work in progress project with the eventual goal of providing simple personal
+version control for whatever you're working on.
+
+Estimated % completion: 10%
+
 
 ## Architecture
 
@@ -8,10 +14,3 @@ VCX is broadly divided into:
 - **agent** - API Server, FSMonitor, DB
 - **clients** - CLI, React web interface
 - **tauri** - application wrapper for distribution
-
-## Development Setup
-
-### Prerequisites
-- Go 1.19+
-- Node.js 16+
-- Air (for auto-reload): `go install github.com/cosmtrek/air@latest`
