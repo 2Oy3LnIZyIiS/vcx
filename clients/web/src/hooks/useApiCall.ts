@@ -21,9 +21,10 @@ export function useApiCall<T = string>(): UseApiCallReturn<T> {
     error:   null
   });
 
-  const execute = useCallback(async <R = T>( apiCall: () => Promise<R>,
-                                             formatter?: (data: R) => T
-                                           ): Promise<void> => {
+  const execute = useCallback(async <R = T>(
+    apiCall:    ()        => Promise<R>,
+    formatter?: (data: R) => T
+  ): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -40,9 +41,11 @@ export function useApiCall<T = string>(): UseApiCallReturn<T> {
     setState({ data: null, loading: false, error: null });
   }, []);
 
-  return { data:    state.data,
-           loading: state.loading,
-           error:   state.error,
-           execute,
-           reset };
+  return {
+    data: state.data,
+    loading: state.loading,
+    error: state.error,
+    execute,
+    reset
+  };
 }

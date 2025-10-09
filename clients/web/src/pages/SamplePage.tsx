@@ -1,37 +1,25 @@
-import React, { useState                                   } from 'react';
+import React from 'react';
 import { Button, Group, Stack, Title, Code, Progress, Text } from '@mantine/core';
 import { apiService, ProgressData                          } from '../services/api';
-import { useApiCall                                        } from '../hooks/useApiCall';
-
+import { useApiCall } from '../hooks/useApiCall';
+import { useStreamingApi } from '../hooks/useStreamingApi';
 
 function SamplePage() {
     const { data: response, loading, error, execute: handleApiCall } = useApiCall<string>();
-    const [initProgress, setInitProgress] = useState<ProgressData | null>(null);
-    const [isInitializing, setIsInitializing] = useState(false);
+    const { streaming, data: progress, error: streamError, executeStream } = useStreamingApi<ProgressData | string>();
 
     function checkHealth() {
-        handleApiCall(apiService.health, function(data) {
+        handleApiCall(apiService.health.check, function(data) {
             return JSON.stringify(data, null, 2);
         });
     }
 
     function callInit() {
-        handleApiCall(apiService.projectInit);
+        executeStream(apiService.project.initStreamSimple);
     }
 
     function callInitStream() {
-        setIsInitializing(true);
-        setInitProgress(null);
-
-        function onProgress(data: ProgressData) {
-            setInitProgress(data);
-        }
-        function onComplete() {
-            setIsInitializing(false);
-            setInitProgress(null);
-        }
-
-        const eventSource = apiService.projectInitStream(onProgress, onComplete);
+        executeStream(apiService.project.initStream);
     }
 
 
@@ -44,32 +32,38 @@ function SamplePage() {
           Check Agent Health
         </Button>
 
-        <Button onClick={callInit} loading={loading} variant="outline">
+        <Button onClick={callInit} loading={streaming} variant="outline">
           Initialize Project (Simple)
         </Button>
 
-        <Button onClick={callInitStream} loading={isInitializing} variant="filled">
+        <Button onClick={callInitStream} loading={streaming} variant="filled">
           Initialize Project (Progress)
         </Button>
       </Group>
 
-      {initProgress && (
+      {progress && (
         <Stack gap="sm">
-          <Text size="sm">{initProgress.message}</Text>
-          <Progress
-            value={(initProgress.step / initProgress.total) * 100}
-            size="lg"
-            animated
-          />
-          <Text size="xs" c="dimmed">
-            Step {initProgress.step} of {initProgress.total}
-          </Text>
+          {typeof progress === 'string' ? (
+            <Text size="sm">{progress}</Text>
+          ) : (
+            <>
+              <Text size="sm">{progress.message}</Text>
+              <Progress
+                value={(progress.step / progress.total) * 100}
+                size="lg"
+                animated
+              />
+              <Text size="xs" c="dimmed">
+                Step {progress.step} of {progress.total}
+              </Text>
+            </>
+          )}
         </Stack>
       )}
 
-      {error && (
+      {(error || streamError) && (
         <Code block color="red">
-          {error}
+          {error || streamError}
         </Code>
       )}
 

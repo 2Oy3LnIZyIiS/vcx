@@ -1,81 +1,21 @@
 
-
-export interface ProgressData {
-  step:      number;
-  total:     number;
-  message:   string;
-  completed?: boolean;  // Optional field for completion signal
-}
-
+import { HttpClient } from './http-client';
+import { ProjectApi } from './project-api';
+import { HealthApi  } from './health-api';
 
 class ApiService {
-  private readonly baseUrl: string;
+  public readonly project: ProjectApi;
+  public readonly health: HealthApi;
 
+  constructor(baseUrl?: string) {
+    const http   = new HttpClient(baseUrl);
 
-  constructor(baseUrl: string = 'http://localhost:9847') {
-    this.baseUrl = baseUrl;
-
-    // Bind methods to preserve 'this' context
-    this.health            = this.health.bind(this);
-    this.ping              = this.ping.bind(this);
-    this.projectInit       = this.projectInit.bind(this);
-    this.projectInitStream = this.projectInitStream.bind(this);
+    this.project = new ProjectApi(http);
+    this.health  = new HealthApi(http);
   }
-
-
-  async health(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/health`);
-    return response.json();
-  }
-
-
-  async ping(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/ping`);
-    return response.json();
-  }
-
-
-
-  async projectInit(): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/api/project/init`);
-    return response.text();
-  }
-
-
-  projectInitStream( onProgress: (data: ProgressData) => void,
-                     onComplete: ()                   => void
-                   ): EventSource {
-    const eventSource = new EventSource(`${this.baseUrl}/api/project/init-stream`);
-
-    function cleanup() {
-      eventSource.close();
-      onComplete();
-    }
-
-    eventSource.onmessage = function(event) {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.completed) {
-          cleanup();
-        } else {
-          onProgress(data);
-        }
-      } catch (error) {
-        console.error('Error parsing SSE data:', error);
-        cleanup();
-      }
-    };
-
-    eventSource.onerror = function(error) {
-      console.error('EventSource error:', error);
-      cleanup();
-    };
-
-    return eventSource;
-  }
-
-
 }
 
-
 export const apiService = new ApiService();
+export * from './project-api';  // Export types
+export * from './health-api';
+export * from './http-client';
