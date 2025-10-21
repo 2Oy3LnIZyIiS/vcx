@@ -14,10 +14,10 @@ func executeWithContext(ctx context.Context, sqlStmt string, args []any) (sql.Re
 
 	result, err := db.ExecContext(ctx, sqlStmt, args...)
 	if err != nil {
-		log.Error("Execution Failed",
-			"ERROR", err,
-			"SQL", sqlStmt,
-			"args", args)
+		log.Error( "Execution Failed",
+                   "ERROR", err,
+                   "SQL",   sqlStmt,
+                   "args",  args)
 		return nil, fmt.Errorf("execution failed: %w", err)
 	}
 	return result, nil
@@ -35,6 +35,7 @@ func InsertWithContext(ctx context.Context, tableName string, data map[string]an
 	if err := hasRequiredParams(tableName, data); err != nil {
 		return "", err
 	}
+    addMetaTo(schema)
 	addLMULMD(data)
 	if schema != nil {
 		// Set default values
@@ -56,16 +57,16 @@ func UpdateWithContext(ctx context.Context, tableName string, data map[string]an
 		return 0, err
 	}
 	addLMULMD(data)
-	columns, _, values := extractColumnsAndValues(data)
-	setPairs := buildSetClause(columns, nil)
+	columns, _, values      := extractColumnsAndValues(data)
+	setPairs                := buildSetClause(columns, nil)
 	wherePairs, whereValues := buildWhereClause(conditions)
-	values = append(values, whereValues...)
-	sqlStmt := fmt.Sprintf("UPDATE %s SET %s",
-		tableName,
-		strings.Join(setPairs, ", "))
+	values                   = append(values, whereValues...)
+	sqlStmt                 := fmt.Sprintf( "UPDATE %s SET %s",
+                                            tableName,
+                                            strings.Join(setPairs, ", "))
 	if len(conditions) > 0 {
 		sqlStmt += fmt.Sprintf(" WHERE %s", strings.Join(wherePairs, " AND "))
-		values = append(values, whereValues)
+		values   = append(values, whereValues)
 	}
 	return executeAndGetRowsAffectedWithContext(ctx, sqlStmt, values)
 }

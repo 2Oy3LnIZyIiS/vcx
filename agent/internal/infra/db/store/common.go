@@ -2,19 +2,27 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"vcx/agent/internal/infra/db"
 	"vcx/agent/internal/infra/db/consts"
+	"vcx/pkg/logging"
 )
+
+
+var log = logging.GetLogger()
+
 
 func Create( ctx       context.Context,
              tableName string,
              data      map[string]any,
              schema    map[string]string,
            ) (map[string]any, error) {
+    log = logging.GetLogger()
 	id, err := db.InsertWithContext(ctx, tableName, data, schema)
     if err != nil {
         return nil, err
     }
+    log.Debug(fmt.Sprintf("Record Created with id: %s", id))
     return GetByID(ctx, tableName, id)
 }
 

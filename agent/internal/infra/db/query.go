@@ -82,7 +82,14 @@ func Select( tableName  string,
 //   - Values are returned as interfaces and may need type assertion
 func rowsAsMap(rows *sql.Rows, columns []string) ([]map[string]any, error) {
     var results []map[string]any
+    var err error
 
+    if len(columns) == 1 && columns[0] == "*" {
+        columns, err = rows.Columns()
+        if err != nil {
+            return nil, fmt.Errorf("error getting columns: %w", err)
+        }
+    }
     tmpValues   := make([]any, len(columns))
     scanTargets := make([]any, len(columns))
     for i := range scanTargets {

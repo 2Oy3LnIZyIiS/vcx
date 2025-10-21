@@ -37,11 +37,7 @@ func CreateTable(tableName string, schema map[string]string) bool {
     if tableExists(tableName) {
         return false
     }
-    schema[consts.ID]           = "TEXT PRIMARY KEY"
-    schema[consts.CREATIONDATE] = "TEXT NOT NULL"
-    schema[consts.LMD]          = "TEXT NOT NULL"
-    schema[consts.LMU]          = "TEXT NOT NULL"
-    schema[consts.GUID]         = "TEXT"
+    addMetaTo(schema)
     _, err := execute( fmt.Sprintf( "CREATE TABLE IF NOT EXISTS %s (%s);",
                           tableName,
                           schemaToString(schema)),
@@ -63,6 +59,7 @@ func Insert( tableName string,
            ) (string, error) {
     if err := hasRequiredParams(tableName, data); err != nil {
         return "", err }
+    addMetaTo(schema)
     addLMULMD(data)
     if schema != nil{
         // Set default values

@@ -43,7 +43,7 @@ func SelectWithContext(ctx context.Context, tableName string, columns []string, 
 	if len(args) > 0 {
 		finalArgs = append(finalArgs, args...)
 	}
-	log.Debug(sqlStmt)
+	log.Debug(sqlStmt, "args", fmt.Sprintf("%v", finalArgs))
 
 	rows, err := db.QueryContext(ctx, sqlStmt, finalArgs...)
 	if err != nil {

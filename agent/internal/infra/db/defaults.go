@@ -8,6 +8,17 @@ import (
 	"vcx/pkg/toolkit/uuidkit"
 )
 
+
+func addMetaTo(schema map[string]string) {
+    schema[consts.ID]           = "TEXT PRIMARY KEY"
+    schema[consts.CREATIONDATE] = "TEXT NOT NULL"
+    schema[consts.LMD]          = "TEXT NOT NULL"
+    schema[consts.LMU]          = "TEXT NOT NULL"
+    schema[consts.GUID]         = "TEXT"
+}
+
+
+
 // default values
 var defaultValueGenerators = map[string]func() string{
     consts.ID:           uuidkit.NewUUIDv7AsString,
