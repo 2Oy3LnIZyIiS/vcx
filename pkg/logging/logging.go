@@ -44,6 +44,9 @@ func SetLogLevel(level slog.Level) {
 
 
 func GetLogger() *slog.Logger {
+    if Log == nil {
+        return slog.Default()
+    }
     return Log
 }
 

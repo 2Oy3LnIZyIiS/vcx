@@ -31,10 +31,10 @@ var schema = map[string]string{
     COL_DISPLAY:      consts.TYPE_STRING,
 }
 
-
-func init()  {
+func CreateTable() {
     db.CreateTable(tableName, schema)
 }
+
 
 
 func Create(ctx context.Context, data map[string]any,) (map[string]any, error) {

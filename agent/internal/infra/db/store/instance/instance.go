@@ -38,7 +38,7 @@ var schema = map[string]string{
 }
 
 
-func init()  {
+func CreateTable()  {
     db.CreateTable(tableName, schema)
 }
 

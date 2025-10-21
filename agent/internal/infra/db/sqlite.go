@@ -4,6 +4,7 @@ import (
 	// "database/sql"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -12,12 +13,15 @@ import (
 )
 
 var (
-    log = logging.Log
+    log *slog.Logger
     db  *sql.DB
 )
 
+
 func Init(dataSource string) {
+    log = logging.GetLogger()
     var err error
+    log.Debug(fmt.Sprintf("Attempting to open datasource at: %s", dataSource))
     db, err = sql.Open("sqlite3", dataSource)
     if err != nil {
         log.Error(fmt.Sprintf("Invalid DB config: %s", err))
@@ -35,8 +39,10 @@ func Init(dataSource string) {
 }
 
 func tableExists(tableName string) bool {
+    if db == nil {
+        return false
+    }
     query := `SELECT name FROM sqlite_master WHERE type='table' AND name=?`
-    var name string
-    err := db.QueryRow(query, tableName).Scan(&name)
+    err := db.QueryRow(query, tableName).Scan(&tableName)
     return err == nil
 }

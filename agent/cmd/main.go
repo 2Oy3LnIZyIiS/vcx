@@ -8,22 +8,33 @@ import (
 	"sync"
 	"syscall"
 
+	"vcx/agent/internal/config"
 	"vcx/agent/internal/infra/db"
+	"vcx/agent/internal/infra/db/dbsetup"
 	"vcx/agent/internal/infra/fsmonitor"
 	server "vcx/agent/internal/infra/http"
+	"vcx/pkg/logging"
 )
 
 func init() {
-    db.Init( "./journal.vcx?_journal_mode=WAL")
+    logging.NewLogger(config.AppName)
+}
+
+
+func main() {
+    dbExists := dbsetup.PathExists()
+    db.Init(dbsetup.DefaultDBPath)
+    if !dbExists {
+        dbsetup.CreateTables()
+    }
+
 	// what is the state of this installation?
 	// is there a db?
 	// if not, initialize db
 	// get relevant information into memory
 	// - accountID/account object
 	// - ? what else?
-}
 
-func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 

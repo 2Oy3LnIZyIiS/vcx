@@ -4,20 +4,28 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
-	"strings"
 )
 
+type Filter interface {
+	ShouldSkip(path string, isDir bool) bool
+}
 
 type WalkEvent struct {
-	Type    string `json:"type"`    // "file", "dir", "error", "complete"
+	Type    string `json:"type"`    // "file", "dir", "skip", "error", "complete"
 	Path    string `json:"path"`
 	Message string `json:"message"`
 	Error   string `json:"error,omitempty"`
 }
 
 // Walk streams directory traversal events to the provided channel
-func Walk(dirPath string, eventChan chan<- WalkEvent) {
+func Walk(dirPath string, eventChan chan<- WalkEvent, filter Filter, verbose ...bool) {
 	defer close(eventChan)
+
+	// Default verbose to false
+	isVerbose := false
+	if len(verbose) > 0 {
+		isVerbose = verbose[0]
+	}
 
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -29,17 +37,23 @@ func Walk(dirPath string, eventChan chan<- WalkEvent) {
 			return nil
 		}
 
-		// Skip common directories
-		if d.IsDir() {
-			if strings.Contains(path, "node_modules") ||
-				strings.Contains(path, ".git") {
+		// Check filter
+		if filter != nil && filter.ShouldSkip(path, d.IsDir()) {
+			if isVerbose {
 				eventChan <- WalkEvent{
-					Type:    "dir",
+					Type:    "skip",
 					Path:    path,
-					Message: "Skipping directory",
+					Message: "Filtered",
 				}
-				return filepath.SkipDir
 			}
+			if d.IsDir() {
+				return filepath.SkipDir  // Skip directory and its contents
+			} else {
+				return nil  // Skip file
+			}
+		}
+
+		if d.IsDir() {
 			eventChan <- WalkEvent{
 				Type:    "dir",
 				Path:    path,
