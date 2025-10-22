@@ -45,6 +45,8 @@ func SetLogLevel(level slog.Level) {
 
 func GetLogger() *slog.Logger {
     if Log == nil {
+        // TODO: should call NewLogger with appropriate default name
+        // ...   Maybe extract from go.mod adjust to local directory
         return slog.Default()
     }
     return Log

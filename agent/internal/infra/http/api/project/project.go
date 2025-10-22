@@ -29,18 +29,23 @@ func Handler() http.Handler {
 
 func initProject(w http.ResponseWriter, r *http.Request) {
     httpkit.SetSSEHeaders(w)
-    httpkit.WriteSSE(w, "init project called")
 
-    initService := project.NewInitService()
-    project, err := initService.InitializeProject(context.Background(), "/Users/voxcell/dev/temp")
-    log.Debug(project.Name)
-    if err != nil {
-        httpkit.WriteSSE(w, "{\"error\": \"Failed to initialize project\"}")
-        return
+    fileCount := 0
+
+    // InitializeProject returns a channel and runs in background
+    proj, msgChan := project.InitializeProject(context.Background(), "/Users/voxcell/dev/temp")
+    log.Debug(proj.Name)
+
+    // Stream events to client
+    for event := range msgChan {
+        httpkit.WriteSSE(w, event.Text)
+        time.Sleep(1*time.Millisecond)
+        fileCount++
     }
 
-
+    httpkit.WriteSSE(w, fmt.Sprintf("%s Files processed: %d", proj.Name, fileCount))
     // Send completion event
+    time.Sleep(5*time.Second)
     httpkit.WriteSSE(w, "{\"completed\": true}")
 }
 
