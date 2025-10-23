@@ -1,5 +1,10 @@
 package walk
 
+import (
+	"vcx/pkg/logging"
+	"vcx/pkg/toolkit/debugkit"
+)
+
 
 type EventType string
 
@@ -58,4 +63,11 @@ func Dir(message string) Event {
 
 func Skip(message string) Event {
 	return newEvent(SKIP, message)
+}
+
+
+func (e Event) Log() {
+    // TEMP for debugging
+    log = logging.GetLogger()
+    log.Debug("Walk Event", "type", e.Type, "data", e.Data, "caller", debugkit.GetCaller(1))
 }

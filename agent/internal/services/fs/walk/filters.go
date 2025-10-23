@@ -3,7 +3,12 @@ package walk
 import (
 	"path/filepath"
 	"strings"
+	"vcx/pkg/logging"
 )
+
+
+var log = logging.GetLogger()
+
 
 // SimpleFilter implements basic pattern matching
 type SimpleFilter struct {
@@ -16,19 +21,19 @@ func NewSimpleFilter(patterns []string) *SimpleFilter {
 
 func (f *SimpleFilter) ShouldSkip(path string, isDir bool) bool {
 	name := filepath.Base(path)
-	
+
 	for _, pattern := range f.patterns {
 		// Simple pattern matching
 		if matched, _ := filepath.Match(pattern, name); matched {
 			return true
 		}
-		
+
 		// Check if path contains pattern (for nested paths)
 		if strings.Contains(path, pattern) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

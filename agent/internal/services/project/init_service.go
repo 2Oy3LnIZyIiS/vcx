@@ -38,7 +38,7 @@ func InitializeProject( ctx context.Context, projectPath string,
 
         // Process walk events
         for event := range eventChan {
-            log.Info("Walk Event", "type", event.Type, "data", event.Data)
+            event.Log() // TEMP for debugging
             msgChan <- message.Log(event.Data)
             switch event.Type {
             case walk.FILE:
