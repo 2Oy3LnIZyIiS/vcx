@@ -29,7 +29,7 @@ func InitializeProject( ctx context.Context, projectPath string,
     }
 
     // Walk filesystem and ingest files
-    eventChan := make(chan walk.WalkEvent, 100)
+    eventChan := make(chan walk.Event, 100)
     filter    := walk.DefaultFilter()
 
     go func() {
@@ -37,21 +37,23 @@ func InitializeProject( ctx context.Context, projectPath string,
         go walk.Walk(projectPath, eventChan, filter)
 
         // Process walk events
-        // "file", "dir", "skip", "error", "complete"
         for event := range eventChan {
-            log.Info("Walk Event", "type", event.Type, "path", event.Path)
-            msgChan <- message.Log(event.Path)
+            log.Info("Walk Event", "type", event.Type, "data", event.Data)
+            msgChan <- message.Log(event.Data)
             switch event.Type {
-            case "file":
-                if err := ingestFile(ctx, proj.ID, event.Path); err != nil {
-                    log.Error("Failed to ingest file", "path", event.Path, "error", err)
+            case walk.FILE:
+                if err := ingestFile(ctx, proj.ID, event.Data); err != nil {
+                    log.Error("Failed to ingest file", "path", event.Data, "error", err)
                 }
-            case "error":
-                log.Error("Walk error", "path", event.Path, "error", event.Error)
-            case "complete":
-                log.Info("Project initialization completed", "project", proj.Name)
+            case walk.ERROR:
+                log.Error("Walk error", "error", event.Data)
+            case walk.DIR:
+                log.Debug("Processing directory", "path", event.Data)
+            case walk.SKIP:
+                log.Debug("Skipped", "path", event.Data)
             }
         }
+        log.Info("Project initialization completed", "project", proj.Name)
     }()
 
     return proj, msgChan

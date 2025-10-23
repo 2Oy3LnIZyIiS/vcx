@@ -10,15 +10,8 @@ type Filter interface {
 	ShouldSkip(path string, isDir bool) bool
 }
 
-type WalkEvent struct {
-	Type    string `json:"type"`    // "file", "dir", "skip", "error", "complete"
-	Path    string `json:"path"`
-	Message string `json:"message"`
-	Error   string `json:"error,omitempty"`
-}
-
 // Walk streams directory traversal events to the provided channel
-func Walk(dirPath string, eventChan chan<- WalkEvent, filter Filter, verbose ...bool) {
+func Walk(dirPath string, eventChan chan<- Event, filter Filter, verbose ...bool) {
 	defer close(eventChan)
 
 	// Default verbose to false
@@ -29,22 +22,14 @@ func Walk(dirPath string, eventChan chan<- WalkEvent, filter Filter, verbose ...
 
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			eventChan <- WalkEvent{
-				Type:  "error",
-				Path:  path,
-				Error: err.Error(),
-			}
+			eventChan <- Error(fmt.Sprintf("%s: %v", path, err))
 			return nil
 		}
 
 		// Check filter
 		if filter != nil && filter.ShouldSkip(path, d.IsDir()) {
 			if isVerbose {
-				eventChan <- WalkEvent{
-					Type:    "skip",
-					Path:    path,
-					Message: "Filtered",
-				}
+				eventChan <- Skip(path)
 			}
 			if d.IsDir() {
 				return filepath.SkipDir  // Skip directory and its contents
@@ -54,32 +39,16 @@ func Walk(dirPath string, eventChan chan<- WalkEvent, filter Filter, verbose ...
 		}
 
 		if d.IsDir() {
-			eventChan <- WalkEvent{
-				Type:    "dir",
-				Path:    path,
-				Message: "Scanning directory",
-			}
+			eventChan <- Dir(path)
 		} else {
-			eventChan <- WalkEvent{
-				Type:    "file",
-				Path:    path,
-				Message: "Processing file",
-			}
+			eventChan <- File(path)
 		}
 
 		return nil
 	})
 
 	if err != nil {
-		eventChan <- WalkEvent{
-			Type:  "error",
-			Error: fmt.Sprintf("Walk failed: %v", err),
-		}
-	} else {
-		eventChan <- WalkEvent{
-			Type:    "complete",
-			Message: "Directory scan completed",
-		}
+		eventChan <- Error(fmt.Sprintf("Walk failed: %v", err))
 	}
 }
 
