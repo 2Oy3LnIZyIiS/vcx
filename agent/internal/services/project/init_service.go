@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"vcx/agent/internal/domains/project"
+	"vcx/agent/internal/services/filters"
 	"vcx/agent/internal/services/fs/walk"
 	"vcx/agent/internal/services/message"
 	"vcx/pkg/logging"
@@ -30,7 +31,11 @@ func InitializeProject( ctx context.Context, projectPath string,
 
     // Walk filesystem and ingest files
     eventChan := make(chan walk.Event, 100)
-    filter    := walk.DefaultFilter()
+    log.Info("Loading Filter")
+    // filter    := filters.DefaultFilter()
+    filter    := filters.FromFile(filepath.Join(filters.FILTERSAMPLEPATH, filters.FILTERFILE))
+    filter.Init()
+    log.Info("Filter completed")
 
     go func() {
         defer close(msgChan)
@@ -38,7 +43,7 @@ func InitializeProject( ctx context.Context, projectPath string,
 
         // Process walk events
         for event := range eventChan {
-            event.Log() // TEMP for debugging
+            // event.Log() // TEMP for debugging
             msgChan <- message.Log(event.Data)
             switch event.Type {
             case walk.FILE:

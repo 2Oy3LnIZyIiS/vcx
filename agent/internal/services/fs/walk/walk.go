@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+
+	"vcx/agent/internal/services/filters"
+	"vcx/pkg/logging"
 )
 
-type Filter interface {
-	ShouldSkip(path string, isDir bool) bool
-}
+
+var log = logging.GetLogger()
 
 // Walk streams directory traversal events to the provided channel
-func Walk(dirPath string, eventChan chan<- Event, filter Filter, verbose ...bool) {
+func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface, verbose ...bool) {
 	defer close(eventChan)
 
 	// Default verbose to false

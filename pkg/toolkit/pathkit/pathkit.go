@@ -1,6 +1,9 @@
 package pathkit
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 
 func CWD() string {
@@ -31,4 +34,22 @@ func IsDir(path string) bool {
 func IsFile(path string) bool {
     info, err := os.Stat(path)
     return err == nil && !info.IsDir()
+}
+
+
+func IsSymlink(path string) bool {
+    info, err := os.Lstat(path)
+    return err == nil && info.Mode()&os.ModeSymlink != 0
+}
+
+
+func Split(path string) []string {
+    segments := make([]string, 0)
+    for segment := range strings.SplitSeq(path, "/") {
+        if segment == ""{
+            continue
+        }
+        segments = append(segments, segment)
+    }
+    return segments
 }
