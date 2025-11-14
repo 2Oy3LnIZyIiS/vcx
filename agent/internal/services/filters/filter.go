@@ -1,123 +1,78 @@
 package filters
 
 import (
-	"path/filepath"
+	"bufio"
+	"os"
 	"strings"
-	"vcx/pkg/set"
+
+	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 )
 
-// NOTE: Am choosing NOT to deal with escaped characters at this time
-
-type Filter struct {
-	patterns          []string
-    RootPatterns      *set.Set[string]
-
-
-    RootUnspecified   *set.Set[string]
-    RootFile          *set.Set[string]
-    RootDir           *set.Set[string]
-    SingleFile        *set.Set[string]
-    SingleDir         *set.Set[string]
-    SingleUnspecified *set.Set[string]
+// BasicFilter provides correct gitignore matching using go-git gitignore
+// This filter prioritizes correctness over performance and serves as validation
+// for QuickFilter optimizations
+type BasicFilter struct {
+    InstancePath string
+	patterns     []gitignore.Pattern
+	matcher      gitignore.Matcher
 }
 
-func NewFilter(patterns []string) *Filter {
-	return &Filter{
-        patterns:          patterns,
-        RootPatterns: set.New[string](),
-
-        RootUnspecified:   set.New[string](),
-        RootFile:          set.New[string](),
-        RootDir:           set.New[string](),
-        SingleFile:        set.New[string](),
-        SingleDir:         set.New[string](),
-        SingleUnspecified: set.New[string](),
-    }
-}
-
-
-func (f *Filter) Init() {}
-
-
-func (f *Filter) Process() {
-    for _, pattern := range f.patterns {
-        if !strings.ContainsAny(pattern, "*[]?") {
-            if f.isRootPattern(pattern) {
-                continue
-            }
-            if f.isSinglePattern(pattern){
-                continue
-            }
-        }
-        // process the rest
-    }
-}
-
-func (f *Filter) isRootPattern(pattern string) bool {
-    if strings.HasPrefix(pattern, "@/"){
-        f.RootPatterns.Add(pattern[1:])
-        return true
-    }
-    if strings.HasPrefix(pattern, "/") {
-        f.RootPatterns.Add(pattern)
-        return true
-    }
-
-    // if strings.HasPrefix(pattern, "@/") {
-    //     f.RootFile.Add(pattern[1:])
-    //     return true
-    // }
-    // if strings.HasPrefix(pattern, "/") {
-    //     if strings.HasSuffix(pattern, "/") {
-    //         f.RootDir.Add(pattern[:len(pattern) - 1])
-    //     } else {
-    //         f.RootUnspecified.Add(pattern)
-    //     }
-    //     return true
-    // }
-    return false
-}
-
-
-func (f *Filter) isSinglePattern(pattern string) bool {
-    if strings.Contains(pattern[:len(pattern) - 1], "/") {
-        return false
-    }
-    if strings.HasPrefix(pattern, "@") {
-        f.SingleFile.Add(pattern[1:])
-        return true
-    }
-    if strings.HasSuffix(pattern, "/") {
-        f.SingleDir.Add(pattern[:len(pattern)-1])
-        return true
-    }
-    f.SingleUnspecified.Add(pattern)
-    return true
-}
-
-
-
-func (f *Filter) ShouldSkip(path string, isDir bool) bool {
-	name := filepath.Base(path)
-
-	for _, pattern := range f.patterns {
-		// Simple pattern matching
-		if matched, _ := filepath.Match(pattern, name); matched {
-			return true
-		}
-
-		// Check if path contains pattern (for nested paths)
-		if strings.Contains(path, pattern) {
-			return true
+func NewBasicFilter(instancePath string, patternStrings []string) *BasicFilter {
+	var patterns []gitignore.Pattern
+	for _, p := range patternStrings {
+		if p != "" && !strings.HasPrefix(p, "#") {
+			patterns = append(patterns, gitignore.ParsePattern(p, nil))
 		}
 	}
-
-	return false
+	return &BasicFilter{
+        InstancePath: instancePath,
+		patterns: patterns,
+		matcher: gitignore.NewMatcher(patterns),
+	}
 }
 
-// DefaultSimpleFilter with common ignore patterns
-func DefaultSimpleFilter() *Filter {
-	return NewFilter([]string{
+func (f *BasicFilter) Init() {
+	// Patterns are already processed in NewBasicFilter
+	// Matcher is already created
+}
+
+func (f *BasicFilter) ShouldSkip(path string, isDir bool) bool {
+    relativePath := strings.TrimPrefix(path[len(f.InstancePath):], "/")
+    if relativePath == "" {
+        return false
+    }
+
+    // Split path into segments for go-git matcher
+    pathSegments := strings.Split(relativePath, "/")
+
+    // go-git matcher expects the path segments and isDir flag
+    result := f.matcher.Match(pathSegments, isDir)
+    return result
+}
+
+
+// FromFileBasic creates a BasicFilter from a gitignore file
+func FromFileBasic(instancePath string, gitignorePath string) FilterInterface {
+	file, err := os.Open(gitignorePath)
+	if err != nil {
+		return DefaultBasicFilter(instancePath)
+	}
+	defer file.Close()
+
+	// Read patterns manually since ReadPatterns expects fs.FS
+	var patternStrings []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		patternStrings = append(patternStrings, line)
+	}
+
+	return NewBasicFilter(instancePath, patternStrings)
+}
+
+// DefaultBasicFilter with common ignore patterns
+func DefaultBasicFilter(instancePath string) *BasicFilter {
+	return NewBasicFilter(instancePath, []string{
 		"node_modules",
 		".git",
 		".DS_Store",

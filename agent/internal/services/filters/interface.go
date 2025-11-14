@@ -14,17 +14,17 @@ type FilterInterface interface {
 }
 
 // DefaultFilter returns the recommended filter for VCX
-func DefaultFilter() FilterInterface {
+func DefaultFilter(instancePath string) FilterInterface {
 	// return DefaultSimpleFilter()
-    return DefaultQuickFilter()
+    return DefaultQuickFilter(instancePath)
 }
 
-func FromFile(path string) FilterInterface {
+func FromFile(instancePath string, path string) FilterInterface {
 	file, err := os.Open(path)
 	if err != nil {
         log := logging.GetLogger()
         log.Error("Could not open file")
-		return DefaultQuickFilter()
+		return DefaultQuickFilter(instancePath)
 	}
 	defer file.Close()
 
@@ -37,5 +37,5 @@ func FromFile(path string) FilterInterface {
 		}
 	}
 
-	return NewQuickFilter(patterns)
+	return NewQuickFilter(instancePath, patterns)
 }

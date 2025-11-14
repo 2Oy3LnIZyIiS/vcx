@@ -15,6 +15,8 @@ var log = logging.GetLogger()
 // Walk streams directory traversal events to the provided channel
 func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface, verbose ...bool) {
 	defer close(eventChan)
+    log = logging.GetLogger()
+    log.Debug("Walking")
 
 	// Default verbose to false
 	isVerbose := false
@@ -34,8 +36,10 @@ func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface
 				eventChan <- Skip(path)
 			}
 			if d.IsDir() {
+				// eventChan <- Skip(path)
 				return filepath.SkipDir  // Skip directory and its contents
 			} else {
+				eventChan <- Skip(path)
 				return nil  // Skip file
 			}
 		}

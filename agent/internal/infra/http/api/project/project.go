@@ -33,7 +33,7 @@ func initProject(w http.ResponseWriter, r *http.Request) {
     fileCount := 0
 
     // InitializeProject returns a channel and runs in background
-    proj, msgChan := project.InitializeProject(context.Background(), "/Users/voxcell/dev/temp")
+    proj, msgChan := project.InitializeProject(context.Background(), TESTPATH)
     log.Debug(proj.Name)
 
     // Stream events to client

@@ -1,8 +1,14 @@
 package pattern
 
 import (
+	"regexp"
 	"strings"
+	"vcx/pkg/logging"
 )
+
+
+var log = logging.GetLogger()
+
 
 // type Buckets struct{
 //     // Buckets of rules for filter speed optimization (fastest to slowest)
@@ -46,6 +52,8 @@ type Pattern struct {
     IsExtension bool
     IsStem      bool
 
+    // Compiled regex for performance
+    CompiledRegex *regexp.Regexp
 }
 
 
@@ -56,12 +64,26 @@ type Pattern struct {
 
 
 func Parse(pattern string) *Pattern {
+    log = logging.GetLogger()
     p := &Pattern{ Text:    pattern,
                    IsValid: true,
+    }
+    if len(pattern) == 0 {
+        log.Debug(pattern)
+        return p
     }
 
     if strings.HasPrefix(pattern, "r:"){
         p.IsRegex = true
+        // Compile regex during preprocessing for performance
+        regexPattern := pattern[2:] // Remove "r:" prefix
+        compiled, err := regexp.Compile(regexPattern)
+        if err != nil {
+            log.Debug("Invalid regex pattern: " + pattern + " - " + err.Error())
+            p.IsValid = false
+        } else {
+            p.CompiledRegex = compiled
+        }
         return p
     }
 
@@ -81,7 +103,12 @@ func Parse(pattern string) *Pattern {
     p.IsSingular  = len(p.Segments) == 1
     p.IsExtension = p.IsSingular && strings.HasPrefix(p.Text, "*.")
     p.IsStem      = p.IsSingular && strings.HasSuffix(p.Text, ".*")
-
+    if p.IsExtension && !strings.ContainsAny(pattern[2:], "*?") {
+        p.HasWildcard = false
+    }
+    if p.IsStem && !strings.ContainsAny(pattern[:len(pattern)-2], "*?") {
+        p.HasWildcard = false
+    }
     return p
 }
 
@@ -116,10 +143,16 @@ func (p *Pattern) String() string {
 
 func (p *Pattern) Normal() string {
     var normalText string = p.Text
-    if p.IsOverride || p.IsRegex {
+    if p.IsOverride {
         return normalText[1:]
     }
+    if p.IsRegex {
+        return normalText[2:]
+    }
     if p.IsFileOnly{
+        normalText = normalText[1:]
+    }
+    if p.IsRoot{
         normalText = normalText[1:]
     }
     if p.IsDirOnly {
@@ -131,11 +164,14 @@ func (p *Pattern) Normal() string {
     if p.HasExpansion{
         return normalText
     }
+    if p.HasWildcard{
+        return normalText
+    }
     if p.IsStem {
         return normalText[:len(normalText)-2]
     }
     if p.IsExtension {
-        return normalText[2:]
+        return normalText[1:]
     }
     return normalText
 }

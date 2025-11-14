@@ -53,3 +53,14 @@ func Split(path string) []string {
     }
     return segments
 }
+
+// NOTE: Assumes path starts with a "/" and is a proper path
+func QuickSplit(path string) []string {
+    segments := strings.Split(path, "/")[1:]
+    last := len(segments) - 1
+    if segments[last] == "" {
+        segments = segments[:last]
+    }
+
+    return segments
+}

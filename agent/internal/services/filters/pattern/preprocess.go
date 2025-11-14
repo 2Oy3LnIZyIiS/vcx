@@ -92,7 +92,7 @@ func isRegex(s string) bool {
 func removeInlineComment(s string) string {
     // i cannot be 0 since that would be a normal comment
     for i := 1; i < len(s); i++ {
-        if s[i] == '#' && s[i-1] != '\\' {
+        if s[i] == '#' && s[i-1] != '\\' && (s[i-1] == ' ' || s[i-1] == '\t') {
             return strings.TrimSpace(s[:i])
         }
     }

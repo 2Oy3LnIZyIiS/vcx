@@ -1,0 +1,15 @@
+VCX Third-Party Software Notices and Information
+
+This software incorporates components from the projects listed below.
+
+================================================================================
+
+github.com/bmatcuk/doublestar/v4
+Copyright (c) 2014 Bob Matcuk
+Licensed under the MIT License
+See: doublestar-LICENSE
+
+Used for: Gitignore-compatible glob pattern matching in BasicFilter
+Repository: https://github.com/bmatcuk/doublestar
+
+================================================================================
