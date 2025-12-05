@@ -30,8 +30,6 @@ package filters
 
 import (
 	"fmt"
-	"strings"
-	"time"
 	patternlib "vcx/agent/internal/services/filters/pattern"
 	"vcx/pkg/logging"
 	"vcx/pkg/set"
@@ -70,10 +68,6 @@ func (f *QuickFilter) Init() {
     log = logging.GetLogger()
     log.Debug("Initilizing Filter")
 
-    // TEMP TEMP TEMP
-    startTime := time.Now()
-    // TEMP TEMP TEMP
-
     f.clearAllData()
 
     log.Debug(fmt.Sprintf("Patterns before normalization: %d", len(f.AllPatterns)))
@@ -83,10 +77,6 @@ func (f *QuickFilter) Init() {
     for _, pattern := range f.AllPatterns {
         f.ProcessPattern(pattern)
     }
-
-    // TEMP TEMP TEMP
-    f.logStats(time.Since(startTime))
-    // TEMP TEMP TEMP
 }
 
 
@@ -96,17 +86,10 @@ func (f *QuickFilter) ShouldSkip(path string, isDir bool) bool {
     // e.g.: /projectdir/logs/log.log
 
     if f.hasFilter(relativePath, isDir) {
-        if strings.Contains(relativePath, "t32.exe"){
-            log.Debug("hit")
-        }
-        if strings.Contains(relativePath, "icon.ico"){
-            log.Debug("hit")
-        }
         return !f.hasOverride(relativePath)
     }
 
-
-    // * Test spaces in directories
+    // TODO: Test spaces in directories
 
     return false
 }

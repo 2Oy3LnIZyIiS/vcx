@@ -13,6 +13,7 @@ const (
 	FILE     EventType = "file"
 	DIR      EventType = "dir"
 	SKIP     EventType = "skip"
+	SYM      EventType = "sym"
 )
 
 var EVENT_TYPES = map[EventType]struct{}{
@@ -20,6 +21,7 @@ var EVENT_TYPES = map[EventType]struct{}{
     FILE:     {},
     DIR:      {},
     SKIP:     {},
+    SYM:      {},
 }
 
 
@@ -32,7 +34,7 @@ type Event struct {
 
 func NewEvent(eventType EventType, message string) Event {
     if _, ok := EVENT_TYPES[eventType]; !ok {
-        eventType = ERROR // default to progress if invalid
+        eventType = ERROR // default to ERROR if invalid
     }
 	return newEvent(eventType, message)
 }
@@ -66,8 +68,13 @@ func Skip(message string) Event {
 }
 
 
+func Sym(message string) Event {
+	return newEvent(SYM, message)
+}
+
+
 func (e Event) Log() {
     // TEMP for debugging
-    log = logging.GetLogger()
+    log := logging.GetLogger()
     log.Debug("Walk Event", "type", e.Type, "data", e.Data, "caller", debugkit.GetCaller(1))
 }

@@ -11,6 +11,12 @@ import (
 // BasicFilter provides correct gitignore matching using go-git gitignore
 // This filter prioritizes correctness over performance and serves as validation
 // for QuickFilter optimizations
+// NOTE: The original point of this filter was to test quickfilter for correctness
+// .. BUT there is actually a bug in the go-git gitignore code that does not
+// .. treat patterns like /doc/_build/ correctly.  Some VERY brief investigation
+// .. leads me to guess that that go-git's usage of the glob match is what's
+// .. causing this.  glob match works in many cases but not all cases and I
+// .. didn't see the edge case code to handle this situation
 type BasicFilter struct {
     InstancePath string
 	patterns     []gitignore.Pattern

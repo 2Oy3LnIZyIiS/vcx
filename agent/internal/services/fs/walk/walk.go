@@ -6,23 +6,54 @@ import (
 	"path/filepath"
 
 	"vcx/agent/internal/services/filters"
-	"vcx/pkg/logging"
 )
 
 
-var log = logging.GetLogger()
+type Snapshot struct {
+    Files    []string
+    Dirs     []string
+    Symlinks []string
+}
 
-// Walk streams directory traversal events to the provided channel
-func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface, verbose ...bool) {
+func GetSnapshot(dirPath string, filter ...filters.FilterInterface) Snapshot {
+    var snap Snapshot
+    var f filters.FilterInterface
+    if len(filter) > 0 {
+        f = filter[0]
+    }
+
+    filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+        if err != nil {
+            return nil
+        }
+
+        isDir := d.IsDir()
+        if f != nil && f.ShouldSkip(path, isDir) {
+            if isDir {
+                return filepath.SkipDir
+            }
+            return nil
+        }
+
+        if d.Type()&fs.ModeSymlink != 0 {
+            snap.Symlinks = append(snap.Symlinks, path)
+        } else if isDir {
+            snap.Dirs = append(snap.Dirs, path)
+        } else {
+            snap.Files = append(snap.Files, path)
+        }
+        return nil
+    })
+
+    return snap
+}
+
+
+// Stream streams directory traversal events to the provided channel
+func Stream(dirPath string, eventChan chan<- Event, filter filters.FilterInterface, verbose ...bool) {
 	defer close(eventChan)
-    log = logging.GetLogger()
-    log.Debug("Walking")
 
-	// Default verbose to false
-	isVerbose := false
-	if len(verbose) > 0 {
-		isVerbose = verbose[0]
-	}
+	isVerbose := len(verbose) > 0 && verbose[0]
 
 	err := filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -30,26 +61,24 @@ func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface
 			return nil
 		}
 
-		// Check filter
-		if filter != nil && filter.ShouldSkip(path, d.IsDir()) {
+		isDir := d.IsDir()
+		if filter != nil && filter.ShouldSkip(path, isDir) {
 			if isVerbose {
 				eventChan <- Skip(path)
 			}
-			if d.IsDir() {
-				// eventChan <- Skip(path)
-				return filepath.SkipDir  // Skip directory and its contents
-			} else {
-				eventChan <- Skip(path)
-				return nil  // Skip file
+			if isDir {
+				return filepath.SkipDir
 			}
+			return nil
 		}
 
-		if d.IsDir() {
+		if d.Type()&fs.ModeSymlink != 0 {
+			eventChan <- Sym(path)
+		} else if isDir {
 			eventChan <- Dir(path)
 		} else {
 			eventChan <- File(path)
 		}
-
 		return nil
 	})
 
@@ -57,36 +86,3 @@ func Walk(dirPath string, eventChan chan<- Event, filter filters.FilterInterface
 		eventChan <- Error(fmt.Sprintf("Walk failed: %v", err))
 	}
 }
-
-/*
-    currentPaths := make(map[string]struct{})
-
-    err := filepath.WalkDir(dm.dirPath, func(path string, d fs.DirEntry, err error) error {
-        if err != nil {
-            dm.errorsChan <- fmt.Errorf("error accessing %s: %v", path, err)
-            return nil
-        }
-        currentPaths[path] = struct{}{}
-
-        // TODO!: handle filters here...
-        if d.IsDir() {
-            if strings.Contains(path, "node_modules") ||
-               strings.Contains(path, ".git") {
-                return filepath.SkipDir
-            }
-        }
-
-        // Process the file asynchronously
-        dm.wg.Add(1)
-        go dm.analyzeFile(path, d)
-
-        return nil
-    })
-
-    if err != nil {
-        dm.errorsChan <- err
-    }
-
-    dm.checkDeletedFiles(currentPaths)
-    dm.wg.Wait()
-*/
