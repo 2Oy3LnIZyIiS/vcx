@@ -8,10 +8,16 @@ import (
 
 	// "strings"
 
-	"vcx/agent/internal/domains/project"
+	branchDomain "vcx/agent/internal/domains/branch"
+	changeDomain "vcx/agent/internal/domains/change"
+	instanceDomain "vcx/agent/internal/domains/instance"
+	projectDomain "vcx/agent/internal/domains/project"
+	tagDomain "vcx/agent/internal/domains/tag"
+	fileService "vcx/agent/internal/services/file"
 	"vcx/agent/internal/services/filters"
 	"vcx/agent/internal/services/fs/walk"
 	"vcx/agent/internal/services/message"
+	"vcx/agent/internal/session"
 	"vcx/pkg/logging"
 )
 
@@ -20,14 +26,25 @@ var log = logging.GetLogger()
 
 
 // POC
-func InitializeProject( ctx context.Context, projectPath string,
-                      ) (*project.Project, <-chan message.Event) {
+func NewProject( ctx context.Context, projectPath string,
+                      ) (*projectDomain.Project, <-chan message.Event) {
     // Create project record
     // called from agent/internal/infra/http/api/project/project.go::initProject()
-    // No changeID as this is the first record
-    msgChan     := make(chan message.Event)
-    projectName := filepath.Base(projectPath)
-    proj, err   := project.New(ctx, projectName, "")
+    msgChan      := make(chan message.Event)
+    // accountID := session.GetAccountID(ctx)
+    // new change
+    change, err  := changeDomain.NewProject(ctx)
+    ctx           = session.WithChangeID(ctx, change.ID)
+    // new project
+    project, err := projectDomain.New(ctx, filepath.Base(projectPath))
+    ctx           = session.WithProjectID(ctx, project.ID)
+    // New branch
+    branch, err  := branchDomain.New(ctx, "main")
+    ctx           = session.WithBranchID(ctx, branch.ID)
+    // New instance
+    _, err        = instanceDomain.New(ctx, projectPath)
+    // New Tag
+    _, err        = tagDomain.NewSystemProjectTag(ctx)
     if err != nil {
         msgChan <- message.Error(fmt.Errorf("failed to create project: %w", err).Error())
         return nil, msgChan
@@ -54,16 +71,17 @@ func InitializeProject( ctx context.Context, projectPath string,
                     log.Error("Walk error", "error", event.Data)
                 case walk.FILE:
                     numProcess++
-                    if err := ingestFile(ctx, proj.ID, event.Data); err != nil {
+                    if _, err := fileService.Ingest(ctx, event.Data); err != nil {
                         logIngestionFailure("file", event, err)
                     }
-                case walk.DIR:
-                    if err := ingestDir(ctx, proj.ID, event.Data); err != nil {
-                        logIngestionFailure("directory", event, err)
-                    }
+                // case walk.DIR:
+                //     // ? Ingest empty directories ?
+                //     // if err := ingestDir(ctx, event.Data); err != nil {
+                //     //     logIngestionFailure("directory", event, err)
+                //     }
                 case walk.SYM:
                     numProcess++
-                    if err := ingestSymlink(ctx, proj.ID, event.Data); err != nil {
+                    if err := ingestSymlink(ctx, event.Data); err != nil {
                         logIngestionFailure("symlink", event, err)
                     }
             // case walk.SKIP:
@@ -72,11 +90,11 @@ func InitializeProject( ctx context.Context, projectPath string,
         }
 
         log.Info(fmt.Sprintf("Walk processed: %d", numProcess))
-        log.Info("Project initialization completed", "project", proj.Name)
+        log.Info("Project initialization completed", "project", project.Name)
         log.Info(fmt.Sprintf("Project Path: %s", projectPath))
     }()
 
-    return proj, msgChan
+    return project, msgChan
 }
 
 
@@ -87,21 +105,14 @@ func logIngestionFailure(pathType string, event walk.Event, err error) {
 }
 
 
-func ingestFile(ctx context.Context, projectID, filePath string) error {
-    // TODO: Create file records, calculate hashes, etc.
-    log.Debug("Ingesting file", "path", filePath)
-    return nil
-}
+// func ingestDir(ctx context.Context, filePath string) error {
+//     // TODO: Create file records, calculate hashes, etc.
+//     log.Debug("Ingesting dir", "path", filePath)
+//     return nil
+// }
 
 
-func ingestDir(ctx context.Context, projectID, filePath string) error {
-    // TODO: Create file records, calculate hashes, etc.
-    log.Debug("Ingesting dir", "path", filePath)
-    return nil
-}
-
-
-func ingestSymlink(ctx context.Context, projectID, linkPath string) error {
+func ingestSymlink(ctx context.Context, linkPath string) error {
     // TODO: Store symlink metadata (path and target), don't hash target content
     log.Debug("Ingesting symlink", "path", linkPath)
     return nil

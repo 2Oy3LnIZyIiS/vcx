@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"vcx/agent/internal/services/project"
+	projectService "vcx/agent/internal/services/project"
 	"vcx/pkg/logging"
 	"vcx/pkg/toolkit/httpkit"
 )
@@ -33,8 +33,8 @@ func initProject(w http.ResponseWriter, r *http.Request) {
     fileCount := 0
 
     // InitializeProject returns a channel and runs in background
-    proj, msgChan := project.InitializeProject(context.Background(), TESTPATH)
-    log.Debug(proj.Name)
+    project, msgChan := projectService.NewProject(context.Background(), TESTPATH)
+    log.Debug(project.Name)
 
     // Stream events to client
     for event := range msgChan {
@@ -43,7 +43,7 @@ func initProject(w http.ResponseWriter, r *http.Request) {
         fileCount++
     }
 
-    httpkit.WriteSSE(w, fmt.Sprintf("%s Files processed: %d", proj.Name, fileCount))
+    httpkit.WriteSSE(w, fmt.Sprintf("%s Files processed: %d", project.Name, fileCount))
     // Send completion event
     time.Sleep(5*time.Second)
     httpkit.WriteSSE(w, "{\"completed\": true}")

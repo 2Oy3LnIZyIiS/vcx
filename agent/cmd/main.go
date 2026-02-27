@@ -35,23 +35,26 @@ func main() {
 	// - accountID/account object
 	// - ? what else?
 
-	ctx, cancel := context.WithCancel(context.Background())
+
+    // TODO: Add accountID to appCtx
+
+	appCtx, appCancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 
-	startServer(ctx, &wg)
-	startMonitor(ctx, &wg)
+	startServer(appCtx, &wg)
+	startMonitor(appCtx, &wg)
 
 	waitForShutdown()
 
 	log.Println("Shutting down...")
-	cancel()
+	appCancel()
 	wg.Wait()
 }
 
 
-func startServer(ctx context.Context, wg *sync.WaitGroup) {
+func startServer(appCtx context.Context, wg *sync.WaitGroup) {
     wg.Go(func() {
-        server.Start(ctx)
+        server.Start(appCtx)
     })
 }
 
