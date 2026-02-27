@@ -17,8 +17,9 @@ import (
 
 
 var (
-    DefaultDataPath = config.AppDataDir("data")
-    DefaultDBPath   = config.AppDataDir("data", "journal.vcx") + "?_journal_mode=WAL"
+	DefaultDataPath = config.AppDataDir("data")
+	DefaultDBPath   = config.AppDataDir("data", "journal.vcx") + "?_journal_mode=WAL"
+	BlobStorePath   = config.AppDataDir("data", "blobs")
 )
 
 

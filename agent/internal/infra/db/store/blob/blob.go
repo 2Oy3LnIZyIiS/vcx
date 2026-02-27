@@ -30,7 +30,7 @@ var schema = map[string]string{
     COL_FILEPATH:     consts.TYPE_STRING,
 	COL_ISCOMPRESSED: consts.TYPE_BOOL,
 	COL_ISBINARY:     consts.TYPE_BOOL,
-	COL_REFCOUNTER:   "integer",
+	COL_REFCOUNTER:   consts.TYPE_INT,
 }
 
 
