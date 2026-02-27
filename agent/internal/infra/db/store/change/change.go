@@ -23,6 +23,8 @@ const /**Columns*/ (
     COL_CHANGEBLOB    = "changeBlob"
     COL_CHANGEID_PREV = "changeID_prev"
     COL_CHANGEID_NEXT = "changeID_next"
+    COL_SUMMARY       = "summary"
+    COL_EMBEDDING     = "embedding"
 )
 
 
@@ -35,11 +37,15 @@ var schema = map[string]string{
     COL_CHANGEBLOB:    consts.TYPE_BLOB,
     COL_CHANGEID_PREV: consts.TYPE_FOREIGNKEY,
     COL_CHANGEID_NEXT: consts.TYPE_FOREIGNKEY,
+    COL_SUMMARY:       consts.TYPE_STRING,
+    COL_EMBEDDING:     consts.TYPE_BLOB,
 }
 
 
-func CreateTable()  {
+func CreateTable() {
     db.CreateTable(tableName, schema)
+    db.CreateIndex("idx_change_timeline", tableName, []string{COL_PROJECTID, COL_BRANCHID, COL_CREATIONDATE})
+    db.CreateIndex("idx_change_file_chain", tableName, []string{COL_FILEID, COL_CREATIONDATE})
 }
 
 
