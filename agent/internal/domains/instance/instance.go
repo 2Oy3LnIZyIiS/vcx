@@ -2,15 +2,12 @@ package instance
 
 import (
 	"context"
-	"fmt"
-	db "vcx/agent/internal/infra/db/store/instance"
 	"vcx/agent/internal/domains"
+	db "vcx/agent/internal/infra/db/store/instance"
+	"vcx/agent/internal/session"
 	"vcx/pkg/toolkit/mapkit"
-
-	"vcx/pkg/logging"
 )
 
-var log = logging.GetLogger()
 const Domain = "Instance"
 
 type Instance struct {
@@ -37,16 +34,16 @@ func mapToStruct(data map[string]any) *Instance {
 	}
 }
 
-func New(ctx context.Context, path, projectID, branchID, changeID string) (*Instance, error) {
+func New(ctx context.Context, path string) (*Instance, error) {
 	data := map[string]any{
 		db.COL_PATH:      path,
-		db.COL_PROJECTID: projectID,
-		db.COL_BRANCHID:  branchID,
-		db.COL_CHANGEID:  changeID,
+		db.COL_PROJECTID: session.GetProjectID(ctx),
+		db.COL_BRANCHID:  session.GetBranchID(ctx),
+		db.COL_CHANGEID:  session.GetChangeID(ctx),
 	}
 	result, err := db.Create(ctx, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Creation Failed: %v", Domain, err))
+		domains.LogError(Domain, "Creation", err)
 		return nil, err
 	}
 
@@ -62,7 +59,7 @@ func (i *Instance) Update(ctx context.Context) error {
 	}
 	_, err := db.Update(ctx, i.ID, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Update Failed: %v", Domain, err))
+		domains.LogError(Domain, "Update", err)
 	}
 
 	return err
@@ -71,7 +68,7 @@ func (i *Instance) Update(ctx context.Context) error {
 func GetByID(ctx context.Context, id string) (*Instance, error) {
 	data, err := db.GetByID(ctx, id)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Retrieval Failed: %v", Domain, err))
+		domains.LogError(Domain, "Retrieval", err)
 		return nil, err
 	}
 

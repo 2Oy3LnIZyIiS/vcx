@@ -2,23 +2,21 @@ package file
 
 import (
 	"context"
-	"fmt"
-	db "vcx/agent/internal/infra/db/store/file"
 	"vcx/agent/internal/domains"
+	db "vcx/agent/internal/infra/db/store/file"
+	"vcx/agent/internal/session"
 	"vcx/pkg/toolkit/mapkit"
-
-	"vcx/pkg/logging"
 )
 
-var log = logging.GetLogger()
 const Domain = "File"
 
 type File struct {
 	domains.Meta
-	Path     string
-	BlobID   string
-	BranchID string
-	ChangeID string
+	Path      string
+	BlobID    string
+	BranchID  string
+	ChangeID  string
+    IsDeleted bool
 }
 
 func mapToStruct(data map[string]any) *File {
@@ -30,23 +28,25 @@ func mapToStruct(data map[string]any) *File {
 			LMD:          mapkit.GetString(data, db.COL_LMD),
 			GUID:         mapkit.GetString(data, db.COL_GUID),
 		},
-		Path:     mapkit.GetString(data, db.COL_PATH),
-		BlobID:   mapkit.GetString(data, db.COL_BLOBID),
-		BranchID: mapkit.GetString(data, db.COL_BRANCHID),
-		ChangeID: mapkit.GetString(data, db.COL_CHANGEID),
+		Path:      mapkit.GetString(data, db.COL_PATH),
+		BlobID:    mapkit.GetString(data, db.COL_BLOBID),
+		BranchID:  mapkit.GetString(data, db.COL_BRANCHID),
+		ChangeID:  mapkit.GetString(data, db.COL_CHANGEID),
+		IsDeleted: mapkit.GetBool(data, db.COL_ISDELETED),
 	}
 }
 
-func New(ctx context.Context, path, blobID, branchID, changeID string) (*File, error) {
+func New(ctx context.Context, path, blobID string) (*File, error) {
 	data := map[string]any{
-		db.COL_PATH:     path,
-		db.COL_BLOBID:   blobID,
-		db.COL_BRANCHID: branchID,
-		db.COL_CHANGEID: changeID,
+		db.COL_PATH:      path,
+		db.COL_BLOBID:    blobID,
+		db.COL_BRANCHID:  session.GetBranchID(ctx),
+		db.COL_CHANGEID:  session.GetChangeID(ctx),
+        db.COL_ISDELETED: false,
 	}
 	result, err := db.Create(ctx, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Creation Failed: %v", Domain, err))
+		domains.LogError(Domain, "Creation", err)
 		return nil, err
 	}
 
@@ -55,14 +55,15 @@ func New(ctx context.Context, path, blobID, branchID, changeID string) (*File, e
 
 func (f *File) Update(ctx context.Context) error {
 	data := map[string]any{
-		db.COL_PATH:     f.Path,
-		db.COL_BLOBID:   f.BlobID,
-		db.COL_BRANCHID: f.BranchID,
-		db.COL_CHANGEID: f.ChangeID,
+		db.COL_PATH:      f.Path,
+		db.COL_BLOBID:    f.BlobID,
+		db.COL_BRANCHID:  f.BranchID,
+		db.COL_CHANGEID:  f.ChangeID,
+		db.COL_ISDELETED: f.IsDeleted,
 	}
 	_, err := db.Update(ctx, f.ID, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Update Failed: %v", Domain, err))
+		domains.LogError(Domain, "Update", err)
 	}
 
 	return err
@@ -71,7 +72,7 @@ func (f *File) Update(ctx context.Context) error {
 func GetByID(ctx context.Context, id string) (*File, error) {
 	data, err := db.GetByID(ctx, id)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Retrieval Failed: %v", Domain, err))
+		domains.LogError(Domain, "Retrieval", err)
 		return nil, err
 	}
 

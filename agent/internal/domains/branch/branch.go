@@ -2,15 +2,12 @@ package branch
 
 import (
 	"context"
-	"fmt"
-	db "vcx/agent/internal/infra/db/store/branch"
 	"vcx/agent/internal/domains"
+	"vcx/agent/internal/session"
+	db "vcx/agent/internal/infra/db/store/branch"
 	"vcx/pkg/toolkit/mapkit"
-
-	"vcx/pkg/logging"
 )
 
-var log = logging.GetLogger()
 const Domain = "Branch"
 
 type Branch struct {
@@ -35,15 +32,15 @@ func mapToStruct(data map[string]any) *Branch {
 	}
 }
 
-func New(ctx context.Context, name, projectID, changeID string) (*Branch, error) {
+func New(ctx context.Context, name string) (*Branch, error) {
 	data := map[string]any{
 		db.COL_NAME:      name,
-		db.COL_PROJECTID: projectID,
-		db.COL_CHANGEID:  changeID,
+		db.COL_PROJECTID: session.GetProjectID(ctx),
+		db.COL_CHANGEID:  session.GetChangeID(ctx),
 	}
 	result, err := db.Create(ctx, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Creation Failed: %v", Domain, err))
+		domains.LogError(Domain, "Creation", err)
 		return nil, err
 	}
 
@@ -58,7 +55,7 @@ func (b *Branch) Update(ctx context.Context) error {
 	}
 	_, err := db.Update(ctx, b.ID, data)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Update Failed: %v", Domain, err))
+		domains.LogError(Domain, "Update", err)
 	}
 
 	return err
@@ -67,7 +64,7 @@ func (b *Branch) Update(ctx context.Context) error {
 func GetByID(ctx context.Context, id string) (*Branch, error) {
 	data, err := db.GetByID(ctx, id)
 	if err != nil {
-		log.Error(fmt.Sprintf("%s Retrieval Failed: %v", Domain, err))
+		domains.LogError(Domain, "Retrieval", err)
 		return nil, err
 	}
 

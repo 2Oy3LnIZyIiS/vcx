@@ -2,15 +2,11 @@ package account
 
 import (
 	"context"
-	"fmt"
-	db "vcx/agent/internal/infra/db/store/account"
 	"vcx/agent/internal/domains"
+	db "vcx/agent/internal/infra/db/store/account"
 	"vcx/pkg/toolkit/mapkit"
-
-	"vcx/pkg/logging"
 )
 
-var log = logging.GetLogger()
 const Domain = "Account"
 
 
@@ -48,7 +44,7 @@ func New(ctx context.Context, name, email, alias string) (*Account, error) {
 	}
     result, err := db.Create(ctx, data)
     if err != nil {
-        log.Error(fmt.Sprintf("%s Creation Failed: %v", Domain, err))
+        domains.LogError(Domain, "Creation", err)
         return nil, err
     }
 
@@ -64,7 +60,7 @@ func (acc *Account) Update(ctx context.Context) error {
 	}
     _, err := db.Update(ctx, acc.ID, data)
     if err != nil {
-        log.Error(fmt.Sprintf("%s Update Failed: %v", Domain, err))
+        domains.LogError(Domain, "Update", err)
     }
 
     return err
@@ -74,7 +70,7 @@ func (acc *Account) Update(ctx context.Context) error {
 func GetByID(ctx context.Context, id string) (*Account, error) {
     data, err := db.GetByID(ctx, id)
     if err != nil {
-        log.Error(fmt.Sprintf("%s Retrieval Failed: %v", Domain, err))
+        domains.LogError(Domain, "Retrieval", err)
         return nil, err
     }
 
