@@ -1,3 +1,9 @@
+// Package systemkit provides system information and cross-platform directory utilities.
+//
+// Handles platform differences for:
+//   - Home directory (USERPROFILE on Windows, HOME on Unix)
+//   - Application data directory (AppData/Roaming, .local/share, Library/Application Support)
+//   - Optimal concurrency levels based on CPU count
 package systemkit
 
 import (
@@ -8,6 +14,8 @@ import (
 )
 
 
+// GetDefaultConcurrency returns optimal concurrency level based on CPU count.
+// Returns min(NumCPU * 16, 128).
 func GetDefaultConcurrency() int {
     numCPU        := runtime.NumCPU()
     concurrent    := numCPU * 16
@@ -19,6 +27,7 @@ func GetDefaultConcurrency() int {
 }
 
 
+// HomeDir returns the user's home directory path.
 func HomeDir() string {
 	var path = ""
 	if runtime.GOOS == "windows" {
@@ -33,6 +42,8 @@ func HomeDir() string {
 	return path
 }
 
+// DataDir returns the platform-specific application data directory.
+// Windows: AppData/Roaming, Linux: .local/share, macOS: Library/Application Support
 func DataDir() string {
 	var path = ""
 	if runtime.GOOS == "windows" {

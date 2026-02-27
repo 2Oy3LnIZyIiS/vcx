@@ -1,8 +1,13 @@
+// Package stringkit provides string comparison utilities with case-insensitive options.
+//
+// Wraps standard string operations with optional case-insensitive matching.
+// Useful for user input comparison and search functionality.
 package stringkit
 
 import "strings"
 
 
+// Equals compares two strings with optional case-insensitive matching.
 func Equals(a, b string, ignoreCase bool) bool {
     if ignoreCase {
         return strings.EqualFold(a, b)
@@ -11,7 +16,7 @@ func Equals(a, b string, ignoreCase bool) bool {
 }
 
 
-// containsComponent checks if one component contains another, respecting options
+// Contains checks if string a contains string b with optional case-insensitive matching.
 func Contains(a, b string, ignoreCase bool) bool {
     if ignoreCase {
         return strings.Contains(

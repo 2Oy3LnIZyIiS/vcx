@@ -1,3 +1,9 @@
+// Package timekit provides time and date utilities.
+//
+// Includes:
+//   - Unix epoch timestamps
+//   - Fractional time with configurable precision (milliseconds to microseconds)
+//   - RFC3339 formatted date/time strings
 package timekit
 
 import (
@@ -5,21 +11,14 @@ import (
 	"time"
 )
 
-// Get current epoch in seconds (returns int64)
+// GetEpoch returns the current Unix timestamp in seconds.
 func GetEpoch() int64 {
 	return time.Now().Unix()
 }
 
 
-// Returns the current fractional time as an integer
-// precision:
-// 	0: defaults to 1 microsecond resolution
-// 	1: 100 milliseconds
-// 	2: 10 milliseconds
-// 	3: 1 millisecond
-// 	4: 100 microseconds
-// 	5: 10 microseconds
-// 	6: 1 microsecond
+// GetFractionalTime returns the fractional part of current time as an integer.
+// Precision levels: 1=100ms, 2=10ms, 3=1ms, 4=100μs, 5=10μs, 6=1μs (default).
 func GetFractionalTime(precision int) int {
     // Default to microsecond precision if 0
     if precision == 0 {
@@ -43,7 +42,7 @@ func GetFractionalTime(precision int) int {
     return result
 }
 
-// Get current date and time in human readable format
+// GetDateTime returns current date and time in RFC3339 format.
 func GetDateTime() string {
     return time.Now().Format(time.RFC3339)
 }

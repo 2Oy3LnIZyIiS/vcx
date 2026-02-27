@@ -1,6 +1,11 @@
+// Package slicekit provides slice manipulation utilities.
+//
+// Includes:
+//   - Filtering empty strings from slices
+//   - Finding subsequences within slices
 package slicekit
 
-// removeEmpty filters out empty strings from a slice of strings
+// RemoveEmpty filters out empty strings from a slice.
 func RemoveEmpty(s []string) []string {
     var result []string
     for _, str := range s {
@@ -12,9 +17,8 @@ func RemoveEmpty(s []string) []string {
 }
 
 
-// ContainsSubSlice returns the index of the first occurrence of the subSlice
-// in the slice
-// -1 is returned if the subSlice is not found
+// ContainsSubSlice returns the index of the first occurrence of subSlice in slice.
+// Returns -1 if subSlice is not found.
 func ContainsSubSlice(slice, subSlice []string) int {
     // for i := 0; i <= len(slice)-len(subSlice); i++ {
     for i := range(len(slice)-len(subSlice)) {

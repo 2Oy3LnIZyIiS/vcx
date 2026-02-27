@@ -1,6 +1,9 @@
-// uuid.go
+// Package uuidkit provides UUID generation and short code utilities.
 //
-// uuid utilities
+// Supports:
+//   - UUID v4 (random) and v7 (time-ordered) generation
+//   - Short codes: compact hash-based identifiers from UUIDs (8-32 characters)
+//   - Useful for user-facing IDs that are shorter than full UUIDs
 package uuidkit
 
 import (
@@ -11,11 +14,12 @@ import (
 )
 
 
+// NewUUID generates a new UUID v4.
 func NewUUID() string {
     return _uuid.New().String()
 }
 
-// Generates a UUIDv7
+// NewUUIDv7 generates a time-ordered UUID v7.
 func NewUUIDv7() _uuid.UUID {
     uuid, err := _uuid.NewV7()
     if err != nil {
@@ -25,22 +29,25 @@ func NewUUIDv7() _uuid.UUID {
 }
 
 
+// NewUUIDv7AsString generates a time-ordered UUID v7 as a string.
 func NewUUIDv7AsString() string {
     return NewUUIDv7().String()
 }
 
 
+// NewShortCode generates an 8-character short code from a new UUID.
 func NewShortCode() string {
     return ShortCodeWithLength(nil, 8) // 8 is the default length
 }
 
-// Returns a short code for a UUID
+// ShortCode generates an 8-character short code from a UUID.
 func ShortCode(value *_uuid.UUID) string {
     return ShortCodeWithLength(value, 8) // 8 is the default length
 }
 
 
-// Returns a short code for a UUID with a given Short
+// ShortCodeWithLength generates a short code of specified length from a UUID.
+// If value is nil, generates a new UUID. Length is clamped between 1-32.
 func ShortCodeWithLength(value *_uuid.UUID, codeLength int) string {
     if value == nil {
         // If no UUID provided, generate a new one
