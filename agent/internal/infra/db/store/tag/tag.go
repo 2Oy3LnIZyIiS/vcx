@@ -43,7 +43,7 @@ var schema = map[string]string{
     COL_ACCOUNTID:   consts.TYPE_FOREIGNKEY,
     COL_NAME:        consts.TYPE_STRING,
     COL_DESCRIPTION: consts.TYPE_STRING,
-    COL_TAGTYPE:     consts.TYPE_ENUM,
+    COL_TAGTYPE:     consts.TYPE_STRING,
     COL_FILEID:      consts.TYPE_FOREIGNKEY,
     COL_BRANCHID:    consts.TYPE_FOREIGNKEY,
     COL_PROJECTID:   consts.TYPE_FOREIGNKEY,

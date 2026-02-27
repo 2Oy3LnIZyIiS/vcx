@@ -19,12 +19,14 @@ const /**Columns*/ (
 
     COL_NAME         = consts.NAME
     COL_CHANGEID     = consts.CHANGEID
+    COL_DEFAULTBRANCHID = consts.DEFAULTBRANCHID
 )
 
 
 var schema = map[string]string{
 	COL_NAME:     consts.TYPE_STRING,
 	COL_CHANGEID: consts.TYPE_FOREIGNKEY,
+	COL_DEFAULTBRANCHID: consts.TYPE_FOREIGNKEY,
 }
 
 

@@ -19,6 +19,7 @@ const (
     BLOBID       = "blobID"
     BRANCHID     = "branchID"
     CHANGEID     = "changeID"
+    DEFAULTBRANCHID = "defaultBranchID"
     FILEID       = "fileID"
     PARENTID     = "parentID"
     PROJECTID    = "projectID"
@@ -30,4 +31,5 @@ const (
     TYPE_BLOB       = "BLOB"
     TYPE_ENUM       = "INTEGER"
     TYPE_STRING     = "TEXT"
+    TYPE_INT        = "INTEGER"
 )

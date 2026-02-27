@@ -53,6 +53,22 @@ func CreateTable(tableName string, schema map[string]string) bool {
 }
 
 
+func CreateIndex(indexName string, tableName string, columns []string) error {
+    sqlStmt := fmt.Sprintf(
+        "CREATE INDEX IF NOT EXISTS %s ON %s(%s)",
+        indexName,
+        tableName,
+        strings.Join(columns, ", "),
+    )
+    _, err := execute(sqlStmt, nil)
+    if err != nil {
+        return fmt.Errorf("failed to create index %s: %w", indexName, err)
+    }
+    log.Debug("Index created", "index", indexName, "table", tableName)
+    return nil
+}
+
+
 func Insert( tableName string,
              data      map[string]any,
              schema    map[string]string,
