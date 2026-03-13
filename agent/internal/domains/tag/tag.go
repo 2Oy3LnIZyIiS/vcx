@@ -43,6 +43,7 @@ func mapToStruct(data map[string]any) *Tag {
 	}
 }
 
+
 func create(ctx context.Context, tt tagtype.TagType, name, description, fileID string) (*Tag, error) {
 	data := map[string]any{
 		db.COL_ACCOUNTID: session.GetAccountID(ctx),
@@ -77,29 +78,36 @@ func create(ctx context.Context, tt tagtype.TagType, name, description, fileID s
 	return mapToStruct(result), nil
 }
 
+
 func NewSystemProjectTag(ctx context.Context) (*Tag, error) {
 	return create(ctx, tagtype.SYSTEM_PROJECT, "", "", "")
 }
+
 
 func NewSystemBranchTag(ctx context.Context) (*Tag, error) {
 	return create(ctx, tagtype.SYSTEM_BRANCH, "", "", "")
 }
 
+
 func NewSystemFileTag(ctx context.Context, fileID string) (*Tag, error) {
 	return create(ctx, tagtype.SYSTEM_FILE, "", "", fileID)
 }
+
 
 func NewUserTag(ctx context.Context, name, description string) (*Tag, error) {
 	return create(ctx, tagtype.USER, name, description, "")
 }
 
+
 func NewUserProjectTag(ctx context.Context, name, description string) (*Tag, error) {
 	return create(ctx, tagtype.USER_PROJECT, name, description, "")
 }
 
+
 func NewUserBranchTag(ctx context.Context, name, description string) (*Tag, error) {
 	return create(ctx, tagtype.USER_BRANCH, name, description, "")
 }
+
 
 func NewUserFileTag(ctx context.Context, name, description, fileID string) (*Tag, error) {
 	return create(ctx, tagtype.USER_FILE, name, description, fileID)

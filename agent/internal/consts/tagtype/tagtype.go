@@ -17,6 +17,7 @@ func (tt TagType) ToString() string {
 	return [...]string{"INVALID", "SYSTEM_PROJECT", "SYSTEM_BRANCH", "SYSTEM_FILE", "USER", "USER_PROJECT", "USER_BRANCH", "USER_FILE"}[tt]
 }
 
+
 func FromString(s string) TagType {
 	switch s {
 	case "SYSTEM_PROJECT":
