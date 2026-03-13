@@ -11,8 +11,11 @@ import (
 	"vcx/agent/internal/config"
 	"vcx/agent/internal/infra/db"
 	"vcx/agent/internal/infra/db/dbsetup"
+	"vcx/agent/internal/services/migrations"
 	"vcx/agent/internal/infra/fsmonitor"
 	server "vcx/agent/internal/infra/http"
+	"vcx/agent/internal/services/account"
+	"vcx/agent/internal/session"
 	"vcx/pkg/logging"
 )
 
@@ -22,23 +25,29 @@ func init() {
 
 
 func main() {
-    dbExists := dbsetup.PathExists()
+    // Ensure data directory exists before initializing DB
+    if !dbsetup.PathExists() {
+        log.Println("Created new data directory")
+    }
+    
+    log.Printf("Initializing database at: %s", dbsetup.DefaultDBPath)
     db.Init(dbsetup.DefaultDBPath)
-    if !dbExists {
-        dbsetup.CreateTables()
+    
+    // Run migrations instead of manual table creation
+    if err := migrations.RunMigrations(context.Background()); err != nil {
+        log.Fatalf("Failed to run migrations: %v", err)
     }
 
-	// what is the state of this installation?
-	// is there a db?
-	// if not, initialize db
-	// get relevant information into memory
-	// - accountID/account object
-	// - ? what else?
+	// Get or create default account
+	baseCtx := context.Background()
+	acc, err := account.GetOrCreateDefaultAccount(baseCtx)
+	if err != nil {
+		log.Fatalf("Failed to initialize account: %v", err)
+	}
 
-
-    // TODO: Add accountID to appCtx
-
-	appCtx, appCancel := context.WithCancel(context.Background())
+	// Add account to app context
+	appCtx := session.WithAccountID(baseCtx, acc.ID)
+	appCtx, appCancel := context.WithCancel(appCtx)
 	var wg sync.WaitGroup
 
 	startServer(appCtx, &wg)
