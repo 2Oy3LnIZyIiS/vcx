@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	fileDomain "vcx/agent/internal/domains/file"
-	tagDomain "vcx/agent/internal/domains/tag"
 	blobService "vcx/agent/internal/services/blob"
+	tagService "vcx/agent/internal/services/tag"
 	"vcx/pkg/logging"
 )
 
@@ -27,7 +27,7 @@ func Ingest(ctx context.Context, filePath string) (*fileDomain.File, error) {
 	}
 
 	// Create system tag
-	_, err = tagDomain.NewSystemFileTag(ctx, file.ID)
+	_, err = tagService.CreateSystemFileTag(ctx, file.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create file tag: %w", err)
 	}
