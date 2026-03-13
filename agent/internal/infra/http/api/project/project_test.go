@@ -5,10 +5,14 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"vcx/agent/internal/session"
 )
 
 func TestInitProject(t *testing.T) {
 	req := httptest.NewRequest("GET", "/init", nil)
+	// Add accountID to context for test
+	ctx := session.WithAccountID(req.Context(), "test-account-id")
+	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
 	initProject(w, req)

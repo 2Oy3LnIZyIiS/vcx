@@ -1,7 +1,6 @@
 package project
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -33,7 +32,7 @@ func initProject(w http.ResponseWriter, r *http.Request) {
     fileCount := 0
 
     // InitializeProject returns a channel and runs in background
-    project, msgChan := projectService.NewProject(context.Background(), TESTPATH)
+    project, msgChan := projectService.NewProject(r.Context(), TESTPATH)
     log.Debug(project.Name)
 
     // Stream events to client
