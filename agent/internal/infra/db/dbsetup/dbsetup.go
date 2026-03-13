@@ -1,20 +1,11 @@
 package dbsetup
 
 import (
+	"log"
 	"os"
 	"vcx/agent/internal/config"
-	"vcx/agent/internal/infra/db/store/account"
-	"vcx/agent/internal/infra/db/store/blob"
-	"vcx/agent/internal/infra/db/store/branch"
-	"vcx/agent/internal/infra/db/store/change"
-	"vcx/agent/internal/infra/db/store/file"
-	"vcx/agent/internal/infra/db/store/instance"
-	"vcx/agent/internal/infra/db/store/project"
-	"vcx/agent/internal/infra/db/store/simplekv"
-	"vcx/agent/internal/infra/db/store/tag"
 	"vcx/pkg/toolkit/pathkit"
 )
-
 
 var (
 	DefaultDataPath = config.AppDataDir("data")
@@ -22,24 +13,16 @@ var (
 	BlobStorePath   = config.AppDataDir("data", "blobs")
 )
 
-
 func PathExists() bool {
+    log.Printf("Checking data path: %s", DefaultDataPath)
     if !pathkit.Exists(DefaultDataPath) {
-        os.MkdirAll(DefaultDataPath, os.ModePerm)
+        log.Printf("Creating data directory: %s", DefaultDataPath)
+        if err := os.MkdirAll(DefaultDataPath, os.ModePerm); err != nil {
+            log.Printf("Failed to create data directory: %v", err)
+            return false
+        }
         return false
     }
+    log.Printf("Data directory exists: %s", DefaultDataPath)
     return true
-}
-
-
-func CreateTables() {
-	account.CreateTable()
-	blob.CreateTable()
-	branch.CreateTable()
-	change.CreateTable()
-	file.CreateTable()
-	instance.CreateTable()
-	project.CreateTable()
-	simplekv.CreateTable()
-	tag.CreateTable()
 }

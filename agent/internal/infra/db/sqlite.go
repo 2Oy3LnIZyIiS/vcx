@@ -22,17 +22,22 @@ func Init(dataSource string) {
     log = logging.GetLogger()
     var err error
     log.Debug(fmt.Sprintf("Attempting to open datasource at: %s", dataSource))
+    
     db, err = sql.Open("sqlite3", dataSource)
     if err != nil {
         log.Error(fmt.Sprintf("Invalid DB config: %s", err))
+        log.Error(fmt.Sprintf("DataSource was: %s", dataSource))
         os.Exit(1)
     }
 
+    log.Debug("Database connection opened, attempting ping...")
     if err = db.Ping(); err != nil {
         log.Error(fmt.Sprintf("DB unreachable: %s", err))
+        log.Error(fmt.Sprintf("DataSource was: %s", dataSource))
         os.Exit(1)
     }
 
+    log.Debug("Database connection successful")
     db.SetMaxOpenConns(1)  // SQLite only supports one writer at a time
     db.SetMaxIdleConns(1)
     db.SetConnMaxLifetime(0) // connections are reused forever
