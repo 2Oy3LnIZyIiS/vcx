@@ -99,12 +99,12 @@ func ingestProjectFiles(ctx context.Context, projectPath string, project *projec
 			log.Error("Walk error", "error", event.Data)
 		case walk.FILE:
 			numProcess++
-			if _, err := fileService.Ingest(ctx, event.Data); err != nil {
+			if _, err := fileService.Ingest(ctx, projectPath, event.Data); err != nil {
 				logIngestionFailure("file", event, err)
 			}
 		case walk.SYM:
 			numProcess++
-			if err := ingestSymlink(ctx, event.Data); err != nil {
+			if err := ingestSymlink(ctx, projectPath, event.Data); err != nil {
 				logIngestionFailure("symlink", event, err)
 			}
 		}
@@ -130,8 +130,9 @@ func logIngestionFailure(pathType string, event walk.Event, err error) {
 // }
 
 
-func ingestSymlink(ctx context.Context, linkPath string) error {
-    // TODO: Store symlink metadata (path and target), don't hash target content
-    log.Debug("Ingesting symlink", "path", linkPath)
+func ingestSymlink(ctx context.Context, projectPath, linkPath string) error {
+    if _, err := fileService.IngestSymlink(ctx, projectPath, linkPath); err != nil {
+        return err
+    }
     return nil
 }
