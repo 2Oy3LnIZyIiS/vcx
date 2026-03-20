@@ -23,6 +23,8 @@ const (
     FILEID       = "fileID"
     PARENTID     = "parentID"
     PROJECTID    = "projectID"
+    SYMLINKID    = "symlinkID"
+    TARGET       = "target"
 )
 
 const (

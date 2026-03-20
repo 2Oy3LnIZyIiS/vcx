@@ -16,6 +16,8 @@ const /*Columns*/ (
     COL_GUID         = consts.GUID
 
     COL_PATH         = consts.PATH
+    COL_TYPE         = consts.TYPE
+    COL_TARGET       = consts.TARGET
     COL_BLOBID       = consts.BLOBID
     COL_BRANCHID     = consts.BRANCHID
     COL_CHANGEID     = consts.CHANGEID
@@ -25,6 +27,8 @@ const /*Columns*/ (
 
 var schema = map[string]string{
     COL_PATH:      consts.TYPE_STRING,
+    COL_TYPE:      consts.TYPE_STRING,
+    COL_TARGET:    consts.TYPE_STRING,
     COL_BLOBID:    consts.TYPE_FOREIGNKEY,
     COL_BRANCHID:  consts.TYPE_FOREIGNKEY,
     COL_CHANGEID:  consts.TYPE_FOREIGNKEY,

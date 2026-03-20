@@ -32,6 +32,7 @@ func mapToStruct(data map[string]any) *Branch {
 	}
 }
 
+
 func New(ctx context.Context, name string) (*Branch, error) {
 	data := map[string]any{
 		db.COL_NAME:      name,
@@ -47,6 +48,7 @@ func New(ctx context.Context, name string) (*Branch, error) {
 	return mapToStruct(result), nil
 }
 
+
 func (b *Branch) Update(ctx context.Context) error {
 	data := map[string]any{
 		db.COL_NAME:      b.Name,
@@ -60,6 +62,7 @@ func (b *Branch) Update(ctx context.Context) error {
 
 	return err
 }
+
 
 func GetByID(ctx context.Context, id string) (*Branch, error) {
 	data, err := db.GetByID(ctx, id)

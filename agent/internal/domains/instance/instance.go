@@ -34,6 +34,7 @@ func mapToStruct(data map[string]any) *Instance {
 	}
 }
 
+
 func New(ctx context.Context, path string) (*Instance, error) {
 	data := map[string]any{
 		db.COL_PATH:      path,
@@ -50,6 +51,7 @@ func New(ctx context.Context, path string) (*Instance, error) {
 	return mapToStruct(result), nil
 }
 
+
 func (i *Instance) Update(ctx context.Context) error {
 	data := map[string]any{
 		db.COL_PATH:      i.Path,
@@ -64,6 +66,7 @@ func (i *Instance) Update(ctx context.Context) error {
 
 	return err
 }
+
 
 func GetByID(ctx context.Context, id string) (*Instance, error) {
 	data, err := db.GetByID(ctx, id)

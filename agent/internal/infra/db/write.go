@@ -53,6 +53,17 @@ func CreateTable(tableName string, schema map[string]string) bool {
 }
 
 
+func AddColumn(tableName, column, colType string) error {
+    sqlStmt := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", tableName, column, colType)
+    _, err := execute(sqlStmt, nil)
+    if err != nil {
+        return fmt.Errorf("failed to add column %s to %s: %w", column, tableName, err)
+    }
+    log.Debug("Column added", "table", tableName, "column", column)
+    return nil
+}
+
+
 func CreateIndex(indexName string, tableName string, columns []string) error {
     sqlStmt := fmt.Sprintf(
         "CREATE INDEX IF NOT EXISTS %s ON %s(%s)",

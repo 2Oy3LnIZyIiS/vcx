@@ -2,6 +2,7 @@ package file
 
 import (
 	"context"
+	"vcx/agent/internal/consts/filetype"
 	"vcx/agent/internal/domains"
 	db "vcx/agent/internal/infra/db/store/file"
 	"vcx/agent/internal/session"
@@ -13,6 +14,8 @@ const Domain = "File"
 type File struct {
 	domains.Meta
 	Path      string
+	Type      filetype.FileType
+	Target    string
 	BlobID    string
 	BranchID  string
 	ChangeID  string
@@ -29,6 +32,8 @@ func mapToStruct(data map[string]any) *File {
 			GUID:         mapkit.GetString(data, db.COL_GUID),
 		},
 		Path:      mapkit.GetString(data, db.COL_PATH),
+		Type:      filetype.FromString(mapkit.GetString(data, db.COL_TYPE)),
+		Target:    mapkit.GetString(data, db.COL_TARGET),
 		BlobID:    mapkit.GetString(data, db.COL_BLOBID),
 		BranchID:  mapkit.GetString(data, db.COL_BRANCHID),
 		ChangeID:  mapkit.GetString(data, db.COL_CHANGEID),
@@ -39,6 +44,7 @@ func mapToStruct(data map[string]any) *File {
 func New(ctx context.Context, path, blobID string) (*File, error) {
 	data := map[string]any{
 		db.COL_PATH:      path,
+		db.COL_TYPE:      filetype.FILE.ToString(),
 		db.COL_BLOBID:    blobID,
 		db.COL_BRANCHID:  session.GetBranchID(ctx),
 		db.COL_CHANGEID:  session.GetChangeID(ctx),
@@ -53,9 +59,30 @@ func New(ctx context.Context, path, blobID string) (*File, error) {
 	return mapToStruct(result), nil
 }
 
+func NewSymlink(ctx context.Context, path, target string) (*File, error) {
+	data := map[string]any{
+		db.COL_PATH:      path,
+		db.COL_TYPE:      filetype.SYMLINK.ToString(),
+		db.COL_TARGET:    target,
+		db.COL_BRANCHID:  session.GetBranchID(ctx),
+		db.COL_CHANGEID:  session.GetChangeID(ctx),
+        db.COL_ISDELETED: false,
+	}
+	result, err := db.Create(ctx, data)
+	if err != nil {
+		domains.LogError(Domain, "Creation", err)
+		return nil, err
+	}
+
+	return mapToStruct(result), nil
+}
+
+
 func (f *File) Update(ctx context.Context) error {
 	data := map[string]any{
 		db.COL_PATH:      f.Path,
+		db.COL_TYPE:      f.Type.ToString(),
+		db.COL_TARGET:    f.Target,
 		db.COL_BLOBID:    f.BlobID,
 		db.COL_BRANCHID:  f.BranchID,
 		db.COL_CHANGEID:  f.ChangeID,
